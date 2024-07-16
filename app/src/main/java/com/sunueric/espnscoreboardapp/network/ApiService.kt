@@ -10,6 +10,6 @@ interface ApiService {
     suspend fun getScoreboard(
         @Path("sport") sport: String,
         @Path("leagueSlug") leagueSlug: String,
-        @Query("dates") date: String,
+//        @Query("dates") date: String,
     ): ScoreboardResponse
 }

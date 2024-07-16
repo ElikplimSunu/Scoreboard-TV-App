@@ -65,14 +65,16 @@ class ScoreboardViewModel : ViewModel() {
 
         events.forEach { event ->
             event.competitions.forEach { competition ->
-                competition.headlines.forEach { headline ->
-                    headlines.add(
-                        Headline(
-                            type = headline.type,
-                            shortLinkText = headline.shortLinkText,
-                            description = headline.description
+                if(competition.headlines != null) {
+                    competition.headlines.forEach { headline ->
+                        headlines.add(
+                            Headline(
+                                type = headline.type,
+                                shortLinkText = headline.shortLinkText,
+                                description = headline.description
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

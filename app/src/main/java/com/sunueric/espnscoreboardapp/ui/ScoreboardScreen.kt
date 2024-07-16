@@ -60,14 +60,14 @@ fun ScoreboardScreen(espnViewModel: ScoreboardViewModel) {
     val headlines by espnViewModel.headlines.collectAsState()
 
 
-    espnViewModel.fetchScoreboard("soccer", "uefa.europa")
+    espnViewModel.fetchScoreboard("soccer", "uefa.champions_qual")
     Log.d("ScoreboardScreen", "Scoreboard state: $scoreboardState")
 
     LaunchedEffect(scoreboardState) {
         while (true) {
             delay(1000)
-            espnViewModel.fetchScoreboard("soccer", "uefa.europa")
-            scoreboardState?.let { espnViewModel.parseLeagueData(it, "basketball") }
+            espnViewModel.fetchScoreboard("soccer", "uefa.champions_qual")
+            scoreboardState?.let { espnViewModel.parseLeagueData(it, "soccer") }
         }
     }
 
