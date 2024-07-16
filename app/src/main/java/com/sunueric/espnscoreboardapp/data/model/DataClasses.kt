@@ -224,6 +224,16 @@ data class ScoreboardResponse(
     val events: List<Event>
 )
 
+data class CallDetails(
+    val sport: String,
+    val leagueSlug: String
+)
+
+data class ParseDetails(
+    val scoreboardState: ScoreboardResponse,
+    val sport: String
+    )
+
 data class League(
     val name: String,
     val season: Season,

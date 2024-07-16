@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -45,8 +47,11 @@ import androidx.tv.material3.Text
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.sunueric.espnscoreboardapp.R
+import com.sunueric.espnscoreboardapp.data.model.CallDetails
 import com.sunueric.espnscoreboardapp.data.model.Headline
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
+import com.sunueric.espnscoreboardapp.data.model.ParseDetails
+import com.sunueric.espnscoreboardapp.data.model.ScoreboardResponse
 import com.sunueric.espnscoreboardapp.data.model.UpComingMatch
 import com.sunueric.espnscoreboardapp.ui.composables.LiveMatchItem
 import com.sunueric.espnscoreboardapp.ui.viewmodels.ScoreboardViewModel
@@ -54,67 +59,99 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun ScoreboardScreen(espnViewModel: ScoreboardViewModel) {
-    val scoreboardState by espnViewModel.scoreboardState.collectAsState()
-    val liveOrScheduledMatches by espnViewModel.liveOrScheduledMatches.collectAsState()
-    val scheduledOrPassedMatches by espnViewModel.scheduledOrPassedMatches.collectAsState()
-    val headlines by espnViewModel.headlines.collectAsState()
+    val scoreboardStates by espnViewModel.scoreboardStates.collectAsState()
+    val parsedLeagues by espnViewModel.parsedLeagues.collectAsState()
 
+    val callDetails = listOf(
+        CallDetails(
+            "soccer",
+            "uefa.champions_qual"
+        ),
+        CallDetails(
+            "soccer",
+            "fifa.friendly.w"
+        ),
+        CallDetails(
+            "soccer",
+            "uefa.euro.u19"
+        ),
+        CallDetails(
+            "soccer",
+            "conmebol.sudamericana"
+        ),
+    )
 
-    espnViewModel.fetchScoreboard("soccer", "uefa.champions_qual")
-    Log.d("ScoreboardScreen", "Scoreboard state: $scoreboardState")
+    val listState = rememberLazyListState()
+    val visibleItems = 1
 
-    LaunchedEffect(scoreboardState) {
+    LaunchedEffect(Unit) {
+        espnViewModel.fetchScoreboard(callDetails)
+
+    }
+
+    LaunchedEffect(Unit) {
         while (true) {
-            delay(1000)
-            espnViewModel.fetchScoreboard("soccer", "uefa.champions_qual")
-            scoreboardState?.let { espnViewModel.parseLeagueData(it, "soccer") }
+            delay(5000)
+            espnViewModel.fetchScoreboard(callDetails)
+            espnViewModel.callParseLeagueData()
         }
     }
 
-    if (scoreboardState == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+    LaunchedEffect(listState) {
+        while (true) {
+            delay(15000) // Delay between scrolls
+            val nextIndex = if (listState.firstVisibleItemIndex + visibleItems >= (scoreboardStates?.size
+                    ?: 0)
+            ) {
+                0 // Reset to the beginning if end is reached
+            } else {
+                listState.firstVisibleItemIndex + visibleItems
+            }
+            listState.animateScrollToItem(nextIndex, scrollOffset = 0)
         }
-    } else {
+    }
 
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val context = LocalContext.current
-
-            // Scoreboard
-            if (!liveOrScheduledMatches.isNullOrEmpty()) {
-                ScoreboardCard(
-                    context = context,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    liveOrScheduledMatches,
-                    "baseball"
+    LazyRow(modifier = Modifier.fillMaxSize(), horizontalArrangement = Arrangement.Center) {
+        if (!parsedLeagues.isNullOrEmpty()) {
+            itemsIndexed(parsedLeagues ?: emptyList()) { index, league ->
+                ScoreboardItem(
+                    liveOrScheduledMatches = league.liveOrScheduledMatch,
+                    scheduledOrPassedMatches = league.scheduledOrPassedMatches,
+                    headlines = league.headlines,
+                    sportType = callDetails[index].sport
                 )
             }
-
-            // Scheduled matches
-            if (!scheduledOrPassedMatches.isNullOrEmpty()) {
-                scheduledOrPassedMatches?.let {
-                    ScheduledOrPassedMatches(
-                        modifier = Modifier.weight(
-                            1f
-                        ), it
-                    )
+        } else {
+            item {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
                 }
             }
+        }
+    }
+}
 
-            // Headlines
-            if (!headlines.isNullOrEmpty()) {
-                headlines?.let {
-                    AutoScrollingHeadlineCard(
-                        modifier = Modifier.weight(1f),
-                        headlines = it
-                    )
-                }
-            }
+@Composable
+fun ScoreboardItem(
+    liveOrScheduledMatches: List<LiveOrScheduledMatch?>?,
+    scheduledOrPassedMatches: List<UpComingMatch>?,
+    headlines: List<Headline>?,
+    sportType: String
+) {
+
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        val context = LocalContext.current
+
+        if (!liveOrScheduledMatches.isNullOrEmpty()) {
+            ScoreboardCard(context = context, modifier = Modifier.weight(1f).fillMaxWidth(), matches = liveOrScheduledMatches, sportType = sportType)
+        }
+
+        if (!scheduledOrPassedMatches.isNullOrEmpty()) {
+            ScheduledOrPassedMatches(modifier = Modifier.weight(1f).fillMaxWidth(), upComingMatches = scheduledOrPassedMatches)
+        }
+
+        if (!headlines.isNullOrEmpty()) {
+            AutoScrollingHeadlineCard(modifier = Modifier.weight(1f).fillMaxWidth(), headlines = headlines)
         }
     }
 }
@@ -126,6 +163,8 @@ fun ScoreboardCard(
     matches: List<LiveOrScheduledMatch?>?,
     sportType: String
 ) {
+    var cardHeight by remember { mutableIntStateOf(0) }
+    val itemHeight = with(LocalDensity.current) { (cardHeight).toDp() } // For 2 items at a time
     val listState = rememberLazyListState()
     val visibleItems = 1
     var playTime by remember { mutableIntStateOf(0) }
@@ -156,19 +195,29 @@ fun ScoreboardCard(
             }
         }
 
-        LazyRow(
-            state = listState,
-            modifier = modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
+        Card(
+            onClick = {}, modifier
+                .fillMaxWidth()
+                .padding(4.dp)
         ) {
-            items(matches) { match ->
-                Box(modifier = Modifier.fillParentMaxWidth()) { // Ensure each item fills the full width
-                    Log.d("ScoreboardCard", "match: $match")
-                    if (match != null) {
-                        LiveMatchItem(Modifier.fillMaxWidth(), context, match, playTime)
+            LazyColumn(
+                state = listState,
+                modifier = modifier.fillMaxSize()
+                    .onGloballyPositioned { coordinates ->
+                        cardHeight = coordinates.size.height
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                items(matches) { match ->
+                    Box(modifier = Modifier.fillParentMaxWidth()) { // Ensure each item fills the full width
+                        Log.d("ScoreboardCard", "match: $match")
+                        if (match != null) {
+                            LiveMatchItem(Modifier.fillMaxWidth(), context, match, playTime, itemHeight)
+                        }
                     }
-                }
 
+                }
             }
         }
     }
@@ -253,16 +302,6 @@ fun ScheduledOrPassedMatches(modifier: Modifier, upComingMatches: List<UpComingM
         }
     }
 }
-
-@Preview(
-    showBackground = true,
-    device = Devices.TV_1080p
-)
-@Composable
-fun ScoreboardScreenPreview() {
-    ScoreboardScreen(espnViewModel = ScoreboardViewModel())
-}
-
 
 @Composable
 fun UpcomingMatchItem(upComingMatch: UpComingMatch, itemHeight: Dp, modifier: Modifier) {
@@ -371,26 +410,6 @@ fun UpcomingMatchItem(upComingMatch: UpComingMatch, itemHeight: Dp, modifier: Mo
 }
 
 @Composable
-@Preview(showBackground = true, device = Devices.TV_1080p)
-fun UpcomingMatchItemPreview() {
-    UpcomingMatchItem(
-        upComingMatch = UpComingMatch(
-            tag = "upcoming",
-            teamAName = "Manchester United",
-            teamAImageUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
-            teamAScore = "",
-            teamBName = "Chelsea",
-            teamBImageUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
-            teamBScore = "",
-            time = "19:00",
-            date = "2023-04-23"
-        ),
-        itemHeight = 200.dp,
-        modifier = Modifier.fillMaxWidth()
-    )
-}
-
-@Composable
 fun AutoScrollingHeadlineCard(modifier: Modifier, headlines: List<Headline>) {
     val listState = rememberLazyListState()
 
@@ -493,5 +512,25 @@ fun HeadlineItem(headline: Headline) {
             text = headline.shortLinkText, style = TextStyle(fontSize = 16.sp, color = Color.Gray)
         )
     }
+}
+
+@Composable
+@Preview(showBackground = true, device = Devices.TV_1080p)
+fun UpcomingMatchItemPreview() {
+    UpcomingMatchItem(
+        upComingMatch = UpComingMatch(
+            tag = "upcoming",
+            teamAName = "Manchester United",
+            teamAImageUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+            teamAScore = "",
+            teamBName = "Chelsea",
+            teamBImageUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/363.png",
+            teamBScore = "",
+            time = "19:00",
+            date = "2023-04-23"
+        ),
+        itemHeight = 200.dp,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 

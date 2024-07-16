@@ -3,9 +3,11 @@ package com.sunueric.espnscoreboardapp.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sunueric.espnscoreboardapp.data.model.CallDetails
 import com.sunueric.espnscoreboardapp.data.model.Event
 import com.sunueric.espnscoreboardapp.data.model.Headline
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
+import com.sunueric.espnscoreboardapp.data.model.ParseDetails
 import com.sunueric.espnscoreboardapp.data.model.ScoreboardResponse
 import com.sunueric.espnscoreboardapp.data.model.UpComingMatch
 import com.sunueric.espnscoreboardapp.network.ScoreboardRepository
@@ -19,32 +21,33 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.TimeZone
 
+data class ParsedLeague(
+    val liveOrScheduledMatch: List<LiveOrScheduledMatch>,
+    val scheduledOrPassedMatches: List<UpComingMatch>,
+    val headlines: List<Headline>
+)
+
 class ScoreboardViewModel : ViewModel() {
     private val repository = ScoreboardRepository()
 
-    private val _scoreboardState = MutableStateFlow<ScoreboardResponse?>(null)
-    val scoreboardState: StateFlow<ScoreboardResponse?> = _scoreboardState
+    private val _scoreboardStates = MutableStateFlow<List<Pair<ScoreboardResponse, String>?>?>(null)
+    val scoreboardStates: StateFlow<List<Pair<ScoreboardResponse, String>?>?> = _scoreboardStates
 
-    private val _liveOrScheduledMatches = MutableStateFlow<List<LiveOrScheduledMatch?>?>(null)
-    val liveOrScheduledMatches: StateFlow<List<LiveOrScheduledMatch?>?> = _liveOrScheduledMatches
-
-    private val _upComingMatches = MutableStateFlow<List<UpComingMatch>?>(null)
-    val upComingMatches: StateFlow<List<UpComingMatch>?> = _upComingMatches
-
-    private val _scheduledOrPassedMatches = MutableStateFlow<List<UpComingMatch>?>(null)
-    val scheduledOrPassedMatches: StateFlow<List<UpComingMatch>?> = _scheduledOrPassedMatches
-
-    private val _headlines = MutableStateFlow<List<Headline>?>(null)
-    val headlines: StateFlow<List<Headline>?> = _headlines
+    private val _parsedLeagues = MutableStateFlow<List<ParsedLeague>?>(null)
+    val parsedLeagues: StateFlow<List<ParsedLeague>?> = _parsedLeagues
 
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message
 
-    fun fetchScoreboard(sport: String, leagueSlug: String) {
+    fun fetchScoreboard(callDetails: List<CallDetails>) {
         viewModelScope.launch {
             try {
-                val response = repository.getScoreboard(sport, leagueSlug)
-                _scoreboardState.value = response
+                val responses: MutableList<Pair<ScoreboardResponse, String>> = mutableListOf()
+                callDetails.forEach { callDetail ->
+                    val response = repository.getScoreboard(callDetail.sport, callDetail.leagueSlug)
+                    responses.add(Pair(response, callDetail.sport))
+                }
+                _scoreboardStates.value = responses
             } catch (e: Exception) {
                 // Handle error
                 Log.e("ScoreboardViewModel", "$e")
@@ -52,20 +55,54 @@ class ScoreboardViewModel : ViewModel() {
         }
     }
 
-    fun parseLeagueData(scoreboardState: ScoreboardResponse, sport: String) {
-        val headlines: MutableList<Headline> = mutableListOf()
-        val events = scoreboardState.events
-        if(events.isNotEmpty()) {
-//            checkMatchTime(event = event)
-
-            parseLiveOrScheduledMatches(scoreboardState, sport)
-
-            parseScheduledOrPassedMatches(events)
+    fun callParseLeagueData() {
+        val parseDetails: MutableList<ParseDetails> = mutableListOf()
+        scoreboardStates.value?.forEach { scoreboardState ->
+            if (scoreboardState != null) {
+                parseDetails.add(ParseDetails(scoreboardState.first, scoreboardState.second))
+            }
+        }
+        parseLeagueData(parseDetails)
     }
+
+    private fun parseLeagueData(scoreboardStates: List<ParseDetails>) {
+        val parsedLeagues: MutableList<ParsedLeague> = mutableListOf()
+
+        scoreboardStates.forEach { scoreboardState ->
+            val events = scoreboardState.scoreboardState.events
+            if (events.isNotEmpty()) {
+//            checkMatchTime(event = event)
+                val liveOrScheduledMatch = parseLiveOrScheduledMatches(
+                    scoreboardState.scoreboardState,
+                    scoreboardState.sport
+                )
+
+                val scheduledOrPassedMatches = parseScheduledOrPassedMatches(events)
+
+                val headlines = parseHeadlines(events)
+
+                val league = ParsedLeague(
+                    liveOrScheduledMatch = liveOrScheduledMatch ?: emptyList(),
+                    scheduledOrPassedMatches = scheduledOrPassedMatches ?: emptyList(),
+                    headlines = headlines ?: emptyList()
+                )
+
+                parsedLeagues.add(league)
+            }
+        }
+
+        _parsedLeagues.value = parsedLeagues
+    }
+
+    private fun parseHeadlines(
+        events: List<Event>
+    ) : List<Headline>? {
+
+        val headlines: MutableList<Headline> = mutableListOf()
 
         events.forEach { event ->
             event.competitions.forEach { competition ->
-                if(competition.headlines != null) {
+                if (competition.headlines?.isNotEmpty() == true) { // This is very important
                     competition.headlines.forEach { headline ->
                         headlines.add(
                             Headline(
@@ -75,37 +112,16 @@ class ScoreboardViewModel : ViewModel() {
                             )
                         )
                     }
+                } else {
+                    return null
                 }
             }
         }
 
-        _headlines.value = headlines
+        return headlines
     }
 
-    private fun parseUpcomingMatches(event: Event) {
-        val upcomingMatches: MutableList<UpComingMatch> = mutableListOf()
-
-        event.competitions.forEach { competition ->
-            val competitors = competition.competitors
-                val (parsedTime, parsedDate) = parseAndFormatDateTime(event.date)
-                val match = UpComingMatch(
-                    tag = "upcoming",
-                    teamAName = competitors[0].team.displayName,
-                    teamAImageUrl = competitors[0].team.logo,
-                    teamAScore = null,
-                    teamBName = competitors[1].team.displayName,
-                    teamBImageUrl = competitors[1].team.logo,
-                    teamBScore = null,
-                    time = parsedTime,
-                    date = parsedDate
-                )
-            upcomingMatches.add(match)
-        }
-
-        _upComingMatches.value = upcomingMatches
-    }
-
-    private fun parseScheduledOrPassedMatches(events: List<Event>) {
+    private fun parseScheduledOrPassedMatches(events: List<Event>) : List<UpComingMatch>? {
         val scheduledOrPassedMatches: MutableList<UpComingMatch> = mutableListOf()
         val scheduledEvent = events.filter { it.status.type.state == "pre" }
         val passedEvent = events.filter { it.status.type.state == "post" }
@@ -130,16 +146,18 @@ class ScoreboardViewModel : ViewModel() {
                 scheduledOrPassedMatches.add(match)
             }
 
-            _scheduledOrPassedMatches.value = scheduledOrPassedMatches
+            return scheduledOrPassedMatches
+        } else {
+            return null
         }
     }
 
-    private fun parseLiveOrScheduledMatches(scoreboardState: ScoreboardResponse, sport: String) {
+    private fun parseLiveOrScheduledMatches(scoreboardState: ScoreboardResponse, sport: String) : List<LiveOrScheduledMatch>? {
         val liveOrScheduledMatches: MutableList<LiveOrScheduledMatch> = mutableListOf()
-        val liveEvents = scoreboardState.events.filter { it.status.type.state == "live" }
+        val liveEvents = scoreboardState.events.filter { it.status.type.state == "in" }
 
         if (liveEvents.isEmpty()) {
-            return
+            return null
         } else {
             liveEvents.forEach { liveEvent ->
                 val competitors = liveEvent.competitions.firstOrNull()?.competitors
@@ -162,36 +180,36 @@ class ScoreboardViewModel : ViewModel() {
                 liveOrScheduledMatches.add(match)
             }
 
-            _liveOrScheduledMatches.value = liveOrScheduledMatches
+            return liveOrScheduledMatches
         }
     }
 
 
-    private fun checkMatchTime(events: List<Event>) {
-        val currentTime = System.currentTimeMillis()
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault())
-        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-
-        val event = events.first()
-        val matchTime = dateFormat.parse(event.date)?.time
-
-        if (matchTime != null) {
-            when {
-                matchTime < currentTime -> {
-                    _message.value = "The match has already passed."
-//                    parsePassedMatches(event)
-                }
-                matchTime == currentTime -> {
-                    _message.value = "The match is currently ongoing."
-                    parseUpcomingMatches(event)
-                }
-                else -> {
-                    // Match is yet to come, parse upcoming matches
-                    parseUpcomingMatches(event)
-                }
-            }
-        }
-    }
+//    private fun checkMatchTime(events: List<Event>) {
+//        val currentTime = System.currentTimeMillis()
+//        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault())
+//        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+//
+//        val event = events.first()
+//        val matchTime = dateFormat.parse(event.date)?.time
+//
+//        if (matchTime != null) {
+//            when {
+//                matchTime < currentTime -> {
+//                    _message.value = "The match has already passed."
+////                    parsePassedMatches(event)
+//                }
+//                matchTime == currentTime -> {
+//                    _message.value = "The match is currently ongoing."
+//                    parseUpcomingMatches(event)
+//                }
+//                else -> {
+//                    // Match is yet to come, parse upcoming matches
+//                    parseUpcomingMatches(event)
+//                }
+//            }
+//        }
+//    }
 }
 
 fun parseAndFormatDateTime(utcDateTime: String): Pair<String, String> {

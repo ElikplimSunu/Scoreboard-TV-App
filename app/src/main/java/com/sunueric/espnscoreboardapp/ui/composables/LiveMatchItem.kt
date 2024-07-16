@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -51,7 +52,7 @@ class LiveMatchItem {
 }
 
 @Composable
-fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: LiveOrScheduledMatch, playTime: Int) {
+fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: LiveOrScheduledMatch, playTime: Int, itemHeight: Dp) {
     var progressFloat by remember { mutableFloatStateOf(0.0f) }
     var displayTimeInt by remember { mutableIntStateOf(0) }
 
@@ -70,16 +71,12 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
     } else if (liveOrScheduledMatches.isCompleted == true) Color.Red else Color.Green
 
 
-    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+    BoxWithConstraints(modifier = modifier.height(itemHeight)) {
         val boxWithConstraintsScope = this
         val width = boxWithConstraintsScope.maxWidth
         val height = boxWithConstraintsScope.maxHeight
         Log.d("LiveMatchItem", "Width: $width, Height: $height")
-    Card(
-        onClick = {}, modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-    ) {
+
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -295,10 +292,9 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
         }
     }
 }
-}
 
 @Preview(showBackground = true, device = Devices.TV_1080p)
 @Composable
 fun LiveMatchItemPreview() {
-    LiveMatchItem(modifier = Modifier, context = LocalContext.current, liveOrScheduledMatches = liveOrScheduledMatches[0], playTime = 90)
+    LiveMatchItem(modifier = Modifier, context = LocalContext.current, liveOrScheduledMatches = liveOrScheduledMatches[0], playTime = 90, itemHeight = 300.dp)
 }
