@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,44 +25,53 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.tv.material3.Card
 import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.sunueric.espnscoreboardapp.R
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
-import com.sunueric.espnscoreboardapp.data.model.liveOrScheduledMatches
+import com.sunueric.espnscoreboardapp.data.model.liveOrScheduledMatchesTestData
 
 class LiveMatchItem {
 }
 
 @Composable
-fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: LiveOrScheduledMatch, playTime: Int, itemHeight: Dp) {
+fun LiveMatchItem(
+    modifier: Modifier,
+    context: Context,
+    liveOrScheduledMatches: LiveOrScheduledMatch,
+    playTime: Int, itemHeight: Dp,
+    scalingFactor: Float
+) {
     var progressFloat by remember { mutableFloatStateOf(0.0f) }
     var displayTimeInt by remember { mutableIntStateOf(0) }
 
     val displayTimeParts = liveOrScheduledMatches.displayTime?.replace("'", "")?.split("+")
-    val extraTime = 0
+//    val extraTime = 0
 //    (displayTimeParts?.get(1)?.toInt()) ?: 0
-
+//
 //    if (displayTimeParts != null) {
 //        displayTimeInt = displayTimeParts.sumOf { it.toInt() }
 //    }
 //    progressFloat = displayTimeInt / ((playTime + (extraTime)).toFloat())
+
+    var scalar by remember { mutableFloatStateOf(1f) }
+    scalar = scalingFactor
+
 
     var matchStatusColor by remember { mutableStateOf(Color.Gray) }
     matchStatusColor = if(liveOrScheduledMatches.matchStatus == "Scheduled") {
@@ -96,7 +104,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         modifier = Modifier
-                            .size(22.dp),
+                            .size(22.dp * scalar),
                         painter = rememberAsyncImagePainter(
                             ImageRequest.Builder(context)
                                 .data(data = liveOrScheduledMatches.leagueLogoUrl)
@@ -114,7 +122,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                     liveOrScheduledMatches.leagueName?.let {
                         Text(
                             text = it,
-                            style = TextStyle(fontSize = 14.sp)
+                            style = TextStyle(fontSize = 14.sp  * scalar)
                         )
                     }
                 }
@@ -122,7 +130,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 liveOrScheduledMatches.season?.let {
                     Text(
                         text = it,
-                        style = TextStyle(fontSize = 14.sp)
+                        style = TextStyle(fontSize = 14.sp  * scalar)
                     )
                 }
             }
@@ -138,14 +146,14 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 liveOrScheduledMatches.matchStatus?.let {
                     Text(
                         text = it,
-                        style = TextStyle(fontSize = 16.sp)
+                        style = TextStyle(fontSize = 16.sp * scalar)
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Icon(
                     painter = painterResource(R.drawable.circle),
                     contentDescription = "Match status",
-                    modifier = Modifier.size(12.dp),
+                    modifier = Modifier.size(12.dp * scalar),
                     tint = matchStatusColor
                 )
             }
@@ -164,7 +172,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
 
                 Image(
                     modifier = Modifier
-                        .size(80.dp),
+                        .size(78.dp * scalar),
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(context)
                             .data(data = liveOrScheduledMatches.homeTeamLogoUrl)
@@ -184,7 +192,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 liveOrScheduledMatches.homeTeam?.let {
                     Text(
                         text = it, style = TextStyle(
-                            fontSize = 20.sp,
+                            fontSize = 20.sp * scalar,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -193,11 +201,12 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 if(liveOrScheduledMatches.homeTeamRecord != null) {
                     Text(
                         text = "(${liveOrScheduledMatches.homeTeamRecord})",
-                        style = TextStyle(fontSize = 18.sp)
+                        style = TextStyle(fontSize = 14.sp * scalar),
+                        textAlign = TextAlign.Center
                     )
                 }
 
-                Text(text = "Home", style = TextStyle(fontSize = 16.sp))
+                Text(text = "Home", style = TextStyle(fontSize = 10.sp * scalar))
 
             }
 
@@ -214,7 +223,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 liveOrScheduledMatches.displayTime?.let {
                     Text(
                         text = it,
-                        style = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                        style = TextStyle(fontSize = 24.sp * scalar, fontWeight = FontWeight.Bold)
                     )
                 }
 
@@ -223,7 +232,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                         .wrapContentHeight(),
                     text = "${liveOrScheduledMatches.homeTeamScore} : ${liveOrScheduledMatches.awayTeamScore}",
                     style = TextStyle(
-                        fontSize = 86.sp,
+                        fontSize = 86.sp * scalar,
                         fontWeight = FontWeight.Bold,
                     )
                 )
@@ -241,7 +250,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
                     modifier = Modifier
-                        .size(80.dp),
+                        .size(78.dp * scalar),
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(context)
                             .data(data = liveOrScheduledMatches.awayTeamLogoUrl)
@@ -261,7 +270,7 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 liveOrScheduledMatches.awayTeam?.let {
                     Text(
                         text = it, style = TextStyle(
-                            fontSize = 20.sp,
+                            fontSize = 20.sp * scalar,
                             fontWeight = FontWeight.Bold
                         )
                     )
@@ -270,11 +279,12 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
                 if(liveOrScheduledMatches.awayTeamRecord != null) {
                     Text(
                         text = "(${liveOrScheduledMatches.awayTeamRecord})",
-                        style = TextStyle(fontSize = 18.sp)
+                        style = TextStyle(fontSize = 14.sp * scalar),
+                        textAlign = TextAlign.Center
                     )
                 }
 
-                Text(text = "Away", style = TextStyle(fontSize = 16.sp))
+                Text(text = "Away", style = TextStyle(fontSize = 10.sp * scalar))
 
             }
 
@@ -296,5 +306,12 @@ fun LiveMatchItem(modifier: Modifier, context: Context, liveOrScheduledMatches: 
 @Preview(showBackground = true, device = Devices.TV_1080p)
 @Composable
 fun LiveMatchItemPreview() {
-    LiveMatchItem(modifier = Modifier, context = LocalContext.current, liveOrScheduledMatches = liveOrScheduledMatches[0], playTime = 90, itemHeight = 300.dp)
+    LiveMatchItem(
+        modifier = Modifier,
+        context = LocalContext.current,
+        liveOrScheduledMatches = liveOrScheduledMatchesTestData[0],
+        playTime = 90,
+        itemHeight = 300.dp,
+        scalingFactor = 1f
+    )
 }

@@ -9,21 +9,18 @@ import com.sunueric.espnscoreboardapp.data.model.Headline
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
 import com.sunueric.espnscoreboardapp.data.model.ParseDetails
 import com.sunueric.espnscoreboardapp.data.model.ScoreboardResponse
-import com.sunueric.espnscoreboardapp.data.model.UpComingMatch
+import com.sunueric.espnscoreboardapp.data.model.ScheduledOrPassedMatch
 import com.sunueric.espnscoreboardapp.network.ScoreboardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import java.util.TimeZone
 
 data class ParsedLeague(
     val liveOrScheduledMatch: List<LiveOrScheduledMatch>,
-    val scheduledOrPassedMatches: List<UpComingMatch>,
+    val scheduledOrPassedMatches: List<ScheduledOrPassedMatch>,
     val headlines: List<Headline>
 )
 
@@ -71,7 +68,6 @@ class ScoreboardViewModel : ViewModel() {
         scoreboardStates.forEach { scoreboardState ->
             val events = scoreboardState.scoreboardState.events
             if (events.isNotEmpty()) {
-//            checkMatchTime(event = event)
                 val liveOrScheduledMatch = parseLiveOrScheduledMatches(
                     scoreboardState.scoreboardState,
                     scoreboardState.sport
@@ -96,7 +92,7 @@ class ScoreboardViewModel : ViewModel() {
 
     private fun parseHeadlines(
         events: List<Event>
-    ) : List<Headline>? {
+    ): List<Headline>? {
 
         val headlines: MutableList<Headline> = mutableListOf()
 
@@ -121,8 +117,8 @@ class ScoreboardViewModel : ViewModel() {
         return headlines
     }
 
-    private fun parseScheduledOrPassedMatches(events: List<Event>) : List<UpComingMatch>? {
-        val scheduledOrPassedMatches: MutableList<UpComingMatch> = mutableListOf()
+    private fun parseScheduledOrPassedMatches(events: List<Event>): List<ScheduledOrPassedMatch>? {
+        val scheduledOrPassedMatches: MutableList<ScheduledOrPassedMatch> = mutableListOf()
         val scheduledEvent = events.filter { it.status.type.state == "pre" }
         val passedEvent = events.filter { it.status.type.state == "post" }
         val scheduledOrPassedEvents = scheduledEvent.plus(passedEvent)
@@ -132,7 +128,7 @@ class ScoreboardViewModel : ViewModel() {
                 val competitors = event.competitions.first().competitors
                 // TODO: Iterate of over the compititions
                 val (parsedTime, parsedDate) = parseAndFormatDateTime(event.date)
-                val match = UpComingMatch(
+                val match = ScheduledOrPassedMatch(
                     tag = if (event.status.type.state == "pre") "upcoming" else "passed",
                     teamAName = competitors[0].team.displayName,
                     teamAImageUrl = competitors[0].team.logo,
@@ -152,7 +148,10 @@ class ScoreboardViewModel : ViewModel() {
         }
     }
 
-    private fun parseLiveOrScheduledMatches(scoreboardState: ScoreboardResponse, sport: String) : List<LiveOrScheduledMatch>? {
+    private fun parseLiveOrScheduledMatches(
+        scoreboardState: ScoreboardResponse,
+        sport: String
+    ): List<LiveOrScheduledMatch>? {
         val liveOrScheduledMatches: MutableList<LiveOrScheduledMatch> = mutableListOf()
         val liveEvents = scoreboardState.events.filter { it.status.type.state == "in" }
 
@@ -184,49 +183,22 @@ class ScoreboardViewModel : ViewModel() {
         }
     }
 
+    private fun parseAndFormatDateTime(utcDateTime: String): Pair<String, String> {
+        // Define the input and output formatters
+        val inputFormatter = DateTimeFormatter.ISO_DATE_TIME
+        val dateFormatter = DateTimeFormatter.ofPattern("MMM dd")
+        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
 
-//    private fun checkMatchTime(events: List<Event>) {
-//        val currentTime = System.currentTimeMillis()
-//        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.getDefault())
-//        dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-//
-//        val event = events.first()
-//        val matchTime = dateFormat.parse(event.date)?.time
-//
-//        if (matchTime != null) {
-//            when {
-//                matchTime < currentTime -> {
-//                    _message.value = "The match has already passed."
-////                    parsePassedMatches(event)
-//                }
-//                matchTime == currentTime -> {
-//                    _message.value = "The match is currently ongoing."
-//                    parseUpcomingMatches(event)
-//                }
-//                else -> {
-//                    // Match is yet to come, parse upcoming matches
-//                    parseUpcomingMatches(event)
-//                }
-//            }
-//        }
-//    }
-}
+        // Parse the UTC date-time string
+        val utcZonedDateTime = ZonedDateTime.parse(utcDateTime, inputFormatter)
 
-fun parseAndFormatDateTime(utcDateTime: String): Pair<String, String> {
-    // Define the input and output formatters
-    val inputFormatter = DateTimeFormatter.ISO_DATE_TIME
-    val dateFormatter = DateTimeFormatter.ofPattern("MMM dd")
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+        // Convert to the system's time zone
+        val systemZonedDateTime = utcZonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
 
-    // Parse the UTC date-time string
-    val utcZonedDateTime = ZonedDateTime.parse(utcDateTime, inputFormatter)
+        // Format the date and time separately
+        val formattedDate = systemZonedDateTime.format(dateFormatter)
+        val formattedTime = systemZonedDateTime.format(timeFormatter)
 
-    // Convert to the system's time zone
-    val systemZonedDateTime = utcZonedDateTime.withZoneSameInstant(ZoneId.systemDefault())
-
-    // Format the date and time separately
-    val formattedDate = systemZonedDateTime.format(dateFormatter)
-    val formattedTime = systemZonedDateTime.format(timeFormatter)
-
-    return Pair(formattedDate, formattedTime)
+        return Pair(formattedDate, formattedTime)
+    }
 }

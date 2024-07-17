@@ -1,6 +1,6 @@
 package com.sunueric.espnscoreboardapp.data.model
 
-data class UpComingMatch(
+data class ScheduledOrPassedMatch(
     val tag: String,
     val teamAName: String,
     val teamAImageUrl: String,
@@ -35,7 +35,7 @@ data class LiveOrScheduledMatch(
     val displayTime: String?
 )
 
-val liveOrScheduledMatches = listOf(
+val liveOrScheduledMatchesTestData = listOf(
     LiveOrScheduledMatch(
         leagueName = "NBA",
         leagueLogoUrl = "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/nba.png",
@@ -151,8 +151,8 @@ val liveOrScheduledMatches = listOf(
     // Add more details as needed
 )
 
-val upComingMatches = listOf(
-    UpComingMatch(
+val scheduledOrPassedMatchesTestData = listOf(
+    ScheduledOrPassedMatch(
         "upcoming",
 
         "Los Angeles Lakers",
@@ -164,7 +164,7 @@ val upComingMatches = listOf(
         "8:00 PM",
         "Jan 5"
     ),
-    UpComingMatch(
+    ScheduledOrPassedMatch(
         "upcoming",
         "Golden State Warriors",
         "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
@@ -175,7 +175,7 @@ val upComingMatches = listOf(
         "7:30 PM",
         "Jan 10"
     ),
-    UpComingMatch(
+    ScheduledOrPassedMatch(
         "upcoming",
         "Chicago Bulls",
         "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
@@ -186,7 +186,53 @@ val upComingMatches = listOf(
         "5:00 PM",
         "Jan 15"
     ),
-    UpComingMatch(
+    ScheduledOrPassedMatch(
+        "upcoming",
+
+        "Milwaukee Bucks",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mil.png",
+        "56",
+        "Philadelphia 76ers",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phi.png",
+        "78",
+        "7:00 PM",
+        "Jan 20"
+    ),
+    ScheduledOrPassedMatch(
+        "upcoming",
+
+        "Los Angeles Lakers",
+        "2",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lal.png",
+        "Brooklyn Nets",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/bkn.png",
+        "3",
+        "8:00 PM",
+        "Jan 5"
+    ),
+    ScheduledOrPassedMatch(
+        "upcoming",
+        "Golden State Warriors",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+        "4",
+        "Miami Heat",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
+        "3",
+        "7:30 PM",
+        "Jan 10"
+    ),
+    ScheduledOrPassedMatch(
+        "upcoming",
+        "Chicago Bulls",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
+        "8",
+        "Houston Rockets",
+        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/hou.png",
+        "89",
+        "5:00 PM",
+        "Jan 15"
+    ),
+    ScheduledOrPassedMatch(
         "upcoming",
 
         "Milwaukee Bucks",
@@ -198,10 +244,26 @@ val upComingMatches = listOf(
         "7:00 PM",
         "Jan 20"
     )
+
     // Add more matches as needed
 )
 
-val headlines = listOf(
+val headlinesTestData = listOf(
+    Headline(
+        type = "Recap",
+        description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
+        shortLinkText = "Celtics win 18th NBA championship with 106-88 Game 5 victory over Dallas Mavericks",
+    ),
+    Headline(
+        type = "Highlight",
+        description = "— Luka Doncic delivers a masterclass performance in a thrilling win against the Lakers.",
+        shortLinkText = "Doncic leads Mavericks to stunning victory over Lakers",
+    ),
+    Headline(
+        type = "News",
+        description = "— LeBron James announces his retirement from the NBA after 20 seasons.",
+        shortLinkText = "LeBron James retires from the NBA",
+    ),
     Headline(
         type = "Recap",
         description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
