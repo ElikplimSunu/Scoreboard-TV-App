@@ -73,9 +73,13 @@ class ScoreboardViewModel : ViewModel() {
                     scoreboardState.sport
                 )
 
-                val scheduledOrPassedMatches = parseScheduledOrPassedMatches(events)
+                val scheduledOrPassedMatches = parseScheduledOrPassedMatches(
+                    scoreboardState.scoreboardState
+                )
 
-                val headlines = parseHeadlines(events)
+                val headlines = parseHeadlines(
+                    scoreboardState.scoreboardState
+                )
 
                 val league = ParsedLeague(
                     liveOrScheduledMatch = liveOrScheduledMatch ?: emptyList(),
@@ -91,10 +95,11 @@ class ScoreboardViewModel : ViewModel() {
     }
 
     private fun parseHeadlines(
-        events: List<Event>
+        scoreboardState: ScoreboardResponse,
     ): List<Headline>? {
 
         val headlines: MutableList<Headline> = mutableListOf()
+        val events = scoreboardState.events
 
         events.forEach { event ->
             event.competitions.forEach { competition ->
@@ -102,6 +107,9 @@ class ScoreboardViewModel : ViewModel() {
                     competition.headlines.forEach { headline ->
                         headlines.add(
                             Headline(
+                                leagueName = scoreboardState.leagues.first().name,
+                                leagueLogoUrl = scoreboardState.leagues.firstOrNull()?.logos?.firstOrNull()?.href,
+                                season = scoreboardState.leagues.firstOrNull()?.season?.displayName,
                                 type = headline.type,
                                 shortLinkText = headline.shortLinkText,
                                 description = headline.description
@@ -117,8 +125,10 @@ class ScoreboardViewModel : ViewModel() {
         return headlines
     }
 
-    private fun parseScheduledOrPassedMatches(events: List<Event>): List<ScheduledOrPassedMatch>? {
+    private fun parseScheduledOrPassedMatches(
+        scoreboardState: ScoreboardResponse): List<ScheduledOrPassedMatch>? {
         val scheduledOrPassedMatches: MutableList<ScheduledOrPassedMatch> = mutableListOf()
+        val events = scoreboardState.events
         val scheduledEvent = events.filter { it.status.type.state == "pre" }
         val passedEvent = events.filter { it.status.type.state == "post" }
         val scheduledOrPassedEvents = scheduledEvent.plus(passedEvent)
@@ -130,6 +140,9 @@ class ScoreboardViewModel : ViewModel() {
                 val (parsedTime, parsedDate) = parseAndFormatDateTime(event.date)
                 val match = ScheduledOrPassedMatch(
                     tag = if (event.status.type.state == "pre") "upcoming" else "passed",
+                    leagueName = scoreboardState.leagues.first().name,
+                    leagueLogoUrl = scoreboardState.leagues.firstOrNull()?.logos?.firstOrNull()?.href,
+                    season = scoreboardState.leagues.firstOrNull()?.season?.displayName,
                     teamAName = competitors[0].team.displayName,
                     teamAImageUrl = competitors[0].team.logo,
                     teamAScore = competitors[0].score,
@@ -174,7 +187,8 @@ class ScoreboardViewModel : ViewModel() {
                     awayTeamLogoUrl = competitors?.get(1)?.team?.logo,
                     awayTeamScore = competitors?.get(1)?.score,
                     awayTeamRecord = if (sport == "baseball") competitors?.get(1)?.records?.firstOrNull()?.summary else null,
-                    displayTime = liveEvent.status.displayClock
+                    displayTime = liveEvent.status.displayClock,
+                    clock = liveEvent.status.clock
                 )
                 liveOrScheduledMatches.add(match)
             }

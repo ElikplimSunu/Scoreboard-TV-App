@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,8 +40,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -49,6 +53,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.tv.material3.Border
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
+import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.rememberAsyncImagePainter
@@ -58,9 +63,9 @@ import com.sunueric.espnscoreboardapp.data.model.CallDetails
 import com.sunueric.espnscoreboardapp.data.model.Headline
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
 import com.sunueric.espnscoreboardapp.data.model.ScheduledOrPassedMatch
-import com.sunueric.espnscoreboardapp.data.model.headlinesTestData
+//import com.sunueric.espnscoreboardapp.data.model.headlinesTestData
 import com.sunueric.espnscoreboardapp.data.model.liveOrScheduledMatchesTestData
-import com.sunueric.espnscoreboardapp.data.model.scheduledOrPassedMatchesTestData
+//import com.sunueric.espnscoreboardapp.data.model.scheduledOrPassedMatchesTestData
 import com.sunueric.espnscoreboardapp.ui.composables.LiveMatchItem
 import com.sunueric.espnscoreboardapp.ui.theme.Purple40
 import com.sunueric.espnscoreboardapp.ui.theme.PurpleGrey80
@@ -76,20 +81,32 @@ fun ScoreboardScreen(espnViewModel: ScoreboardViewModel) {
     val callDetails = listOf(
         CallDetails(
             "soccer",
-            "uefa.champions_qual"
+            "club.friendly"
         ),
         CallDetails(
             "soccer",
-            "fifa.friendly.w"
+            "uefa.europa_qual"
+        ),
+        CallDetails(
+            "soccer",
+            "uefa.europa.conf_qual"
         ),
         CallDetails(
             "soccer",
             "uefa.euro.u19"
         ),
         CallDetails(
-            "soccer",
-            "conmebol.sudamericana"
+            "baseball",
+            "mlb"
         ),
+        CallDetails(
+            "basketball",
+            "nba"
+        ),
+        CallDetails(
+            "football",
+            "nfl"
+        )
     )
 
     val listState = rememberLazyListState()
@@ -222,11 +239,16 @@ fun ScoreboardCard(
 
     if (matches != null) {
         playTime = when (sportType) {
-            "soccer" -> 90
-            else -> 120
+            "soccer" -> 90 * 60 // 90 minutes
+            "basketball" -> 48 * 60 // 48 minutes (NBA)
+            "football" -> 60 * 60 // 60 minutes (NFL)
+            "baseball" -> 9 * 20 * 60 // 9 innings, average of 20 minutes per inning
+            "hockey" -> 60 * 60 // 60 minutes (NHL)
+            "rugby" -> 80 * 60 // 80 minutes
+            "tennis" -> 180 * 60 // Average match duration 3 hours
+            "cricket" -> 8 * 60 * 60 // 8 hours for an ODI match (can vary greatly)
+            else -> 120 * 60 // Default to 120 minutes
         }
-
-
 
         LaunchedEffect(key1 = listState) {
             while (true) {
@@ -323,6 +345,7 @@ fun ScheduledOrPassedMatchesCard(
         with(LocalDensity.current) { (cardHeight / visibleItems).toDp() } // For 2 items at a time
     val listState = rememberLazyListState()
     var cardHeader by remember { mutableStateOf("Upcoming Matches") }
+    var scaleFactor by remember { mutableFloatStateOf(1f) }
 
     LaunchedEffect(key1 = listState, key2 = visibleItems) {
         while (true) {
@@ -356,13 +379,13 @@ fun ScheduledOrPassedMatchesCard(
             Log.d("ScheduledOrPassedMatches", "Width: $childWidth, Height: $childHeight")
 
 
-            visibleItems = when {
+            when {
                 childHeight <= parentHeight / 3 -> {
                     Log.d(
                         "ScheduledOrPassedMatches",
                         "Height in range: The card is 1 out of 3 items on screen. Height: $childHeight"
                     )
-                    1
+                    visibleItems = 1
                 }
 
                 childHeight <= parentHeight / 2 -> {
@@ -370,7 +393,7 @@ fun ScheduledOrPassedMatchesCard(
                         "ScheduledOrPassedMatches",
                         "Height in range: The card is 1 out of 2 items on screen. Height: $childHeight"
                     )
-                    2
+                    visibleItems = 2
                 }
 
                 childHeight <= parentHeight -> {
@@ -378,7 +401,7 @@ fun ScheduledOrPassedMatchesCard(
                         "ScheduledOrPassedMatches",
                         "Height in range: The card is 1 out of 1 items on screen. Height: $childHeight"
                     )
-                    4
+                    visibleItems = 4
                 }
 
                 else -> {
@@ -386,12 +409,101 @@ fun ScheduledOrPassedMatchesCard(
                         "ScheduledOrPassedMatches",
                         "Height out of range: The card is 1 out of 3 items on screen. Height: $childHeight"
                     )
-                    1
+                    visibleItems = 1
                 }
             }
 
+            when (visibleItems) {
+                2 -> {
+                    if (scheduledOrPassedMatches.size < 2) {
+                        scaleFactor = 1.5f
+                    }
+                }
+
+                4 -> {
+                    scaleFactor = when (scheduledOrPassedMatches.size) {
+                        1 -> {
+                            1.3f
+                        }
+                        2 -> {
+                            1.25f
+                        }
+                        3 -> {
+                            1.15f
+                        }
+                        else -> {
+                            1f
+                        }
+                    }
+                }
+            }
+
+            val context = LocalContext.current
+            val scheduledOrPassedMatch = scheduledOrPassedMatches.first()
+
             ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                val (header, matchesGrid) = createRefs()
+                val (header, leagueInfo, matchesGrid) = createRefs()
+                Row(modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(leagueInfo) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                    .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween) {
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            modifier = Modifier
+                                .size(22.dp * scaleFactor),
+                            painter = rememberAsyncImagePainter(
+                                ImageRequest.Builder(context)
+                                    .data(data = scheduledOrPassedMatch.leagueLogoUrl)
+                                    .apply {
+                                        // Placeholder image
+                                        placeholder(R.drawable.default_club_logo)
+                                        // Error image
+                                        error(R.drawable.default_club_logo)
+                                    }
+                                    .build()
+                            ),
+                            contentDescription = "The league logo",
+                            contentScale = ContentScale.Crop
+                        )
+                        scheduledOrPassedMatch.leagueName?.let {
+                            Text(
+                                text = it,
+                                style = TextStyle(fontSize = 14.sp  * (scaleFactor - 0.2f))
+                            )
+                        }
+                    }
+
+                    scheduledOrPassedMatch.season?.let {
+                        Text(
+                            text = it,
+                            style = TextStyle(fontSize = 14.sp  * (scaleFactor - 0.2f))
+                        )
+                    }
+                }
+
+                //Header
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.constrainAs(header) {
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        top.linkTo(parent.top)
+                    }) {
+                        Text(
+                            modifier = Modifier
+                            .padding(top = 4.dp),
+                        text = cardHeader,
+                        style = TextStyle(
+                            fontSize = 18.sp * scaleFactor,
+                            fontWeight = FontWeight.Bold
+                        ))
+                }
                 Text(
                     modifier = Modifier
                         .constrainAs(header) {
@@ -402,7 +514,7 @@ fun ScheduledOrPassedMatchesCard(
                         .padding(top = 4.dp),
                     text = cardHeader,
                     style = TextStyle(
-                        fontSize = 18.sp,
+                        fontSize = 18.sp * scaleFactor,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -432,7 +544,8 @@ fun ScheduledOrPassedMatchesCard(
                         ScheduledOrPassedMatchItem(
                             scheduledOrPassedMatch = upComingMatch,
                             itemHeight = itemHeight,
-                            modifier = Modifier
+                            modifier = Modifier,
+                            scaleFactor = scaleFactor
                         )
                     }
                 }
@@ -445,7 +558,8 @@ fun ScheduledOrPassedMatchesCard(
 fun ScheduledOrPassedMatchItem(
     scheduledOrPassedMatch: ScheduledOrPassedMatch,
     itemHeight: Dp,
-    modifier: Modifier
+    modifier: Modifier,
+    scaleFactor: Float
 ) {
 
     Card(
@@ -454,7 +568,7 @@ fun ScheduledOrPassedMatchItem(
             containerColor = MaterialTheme.colorScheme.onSecondary
         ),
         modifier = Modifier
-            .height(itemHeight)
+            .height(itemHeight * scaleFactor)
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 6.dp)
     ) {
@@ -471,19 +585,20 @@ fun ScheduledOrPassedMatchItem(
                     end.linkTo(scores.start)
                     bottom.linkTo(parent.bottom)
                 }
-                .padding(end = 6.dp),
+                .padding(horizontal = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     modifier = Modifier.padding(horizontal = 6.dp),
                     text = scheduledOrPassedMatch.teamAName,
-                    style = TextStyle(fontSize = 26.sp),
-                    fontWeight = FontWeight.Bold
+                    style = TextStyle(fontSize = 26.sp * scaleFactor),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.End
                 )
 
                 Image(
                     modifier = Modifier
-                        .size(62.dp),
+                        .size(62.dp * scaleFactor),
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current)
                             .data(data = scheduledOrPassedMatch.teamAImageUrl)
@@ -510,11 +625,11 @@ fun ScheduledOrPassedMatchItem(
                     }
                     .padding(start = 4.dp, end = 4.dp)
             ) {
-                Text(text = scheduledOrPassedMatch.time, style = TextStyle(fontSize = 16.sp))
+                Text(text = scheduledOrPassedMatch.time, style = TextStyle(fontSize = 16.sp * scaleFactor))
 
                 Text(
                     text = scheduledOrPassedMatch.date,
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    style = TextStyle(fontSize = 16.sp * scaleFactor, fontWeight = FontWeight.Bold)
                 )
             }
 
@@ -527,7 +642,7 @@ fun ScheduledOrPassedMatchItem(
                     end.linkTo(parent.end)
                 },
                 text = if (scheduledOrPassedMatch.tag == "passed") "${scheduledOrPassedMatch.teamAScore} : ${scheduledOrPassedMatch.teamBScore}" else "0 : 0",
-                style = TextStyle(fontSize = 30.sp, fontWeight = FontWeight.Bold)
+                style = TextStyle(fontSize = 30.sp * scaleFactor, fontWeight = FontWeight.Bold)
             )
 
 
@@ -542,7 +657,7 @@ fun ScheduledOrPassedMatchItem(
                 verticalAlignment = Alignment.CenterVertically) {
                 Image(
                     modifier = Modifier
-                        .size(62.dp),
+                        .size(62.dp * scaleFactor),
                     painter = rememberAsyncImagePainter(
                         ImageRequest.Builder(LocalContext.current)
                             .data(data = scheduledOrPassedMatch.teamBImageUrl)
@@ -559,7 +674,7 @@ fun ScheduledOrPassedMatchItem(
                 Text(
                     modifier = Modifier.padding(horizontal = 6.dp),
                     text = scheduledOrPassedMatch.teamBName,
-                    style = TextStyle(fontSize = 26.sp),
+                    style = TextStyle(fontSize = 26.sp * scaleFactor),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -578,6 +693,7 @@ fun HeadlineCard(
     var cardHeight by remember { mutableIntStateOf(0) }
     var visibleItems by remember { mutableIntStateOf(1) }
     val itemHeight = with(LocalDensity.current) { (cardHeight / visibleItems).toDp() }
+    var scaleFactor by remember { mutableFloatStateOf(1f) }
 
     LaunchedEffect(key1 = listState, key2 = visibleItems) {
         while (true) {
@@ -609,13 +725,13 @@ fun HeadlineCard(
             val childHeight = boxWithConstraintsScope.maxHeight
             Log.d("HeadlineCard", "Width: $childWidth, Height: $childHeight")
 
-            visibleItems = when {
+            when {
                 childHeight <= parentHeight / 3 -> {
                     Log.d(
                         "HeadlineCard",
                         "Height in range: The card is 1 out of 3 items on screen. Height: $childHeight"
                     )
-                    1
+                    visibleItems = 1
                 }
 
                 childHeight <= parentHeight / 2 -> {
@@ -623,7 +739,7 @@ fun HeadlineCard(
                         "HeadlineCard",
                         "Height in range: The card is 1 out of 2 items on screen. Height: $childHeight"
                     )
-                    2
+                    visibleItems = 2
                 }
 
                 childHeight <= parentHeight -> {
@@ -631,7 +747,7 @@ fun HeadlineCard(
                         "HeadlineCard",
                         "Height in range: The card is 1 out of 1 items on screen. Height: $childHeight"
                     )
-                    3
+                    visibleItems = 3
                 }
 
                 else -> {
@@ -639,7 +755,29 @@ fun HeadlineCard(
                         "HeadlineCard",
                         "Height out of range: The card is 1 out of 3 items on screen. Height: $childHeight"
                     )
-                    1
+                    visibleItems = 1
+                }
+            }
+
+            when (visibleItems) {
+                2 -> {
+                    if (headlines.size < 2) {
+                        scaleFactor = 1.5f
+                    }
+                }
+
+                3 -> {
+                    scaleFactor = when (headlines.size) {
+                        1 -> {
+                            1.35f
+                        }
+                        2 -> {
+                            1.25f
+                        }
+                        else -> {
+                            1f
+                        }
+                    }
                 }
             }
 
@@ -655,7 +793,7 @@ fun HeadlineCard(
                         .padding(bottom = 10.dp),
                     text = "Headlines",
                     style = TextStyle(
-                        fontSize = 22.sp,
+                        fontSize = 22.sp * scaleFactor,
                         fontWeight = FontWeight.Bold
                     )
                 )
@@ -680,6 +818,7 @@ fun HeadlineCard(
                         HeadlineItem(
                             headline = headline,
                             itemHeight = itemHeight,
+                            scaleFactor = scaleFactor
                         )
                     }
                 }
@@ -689,14 +828,17 @@ fun HeadlineCard(
 }
 
 @Composable
-fun HeadlineItem(headline: Headline, itemHeight: Dp) {
+fun HeadlineItem(
+    headline: Headline,
+    itemHeight: Dp,
+    scaleFactor: Float) {
     Card(
         onClick = {},
         colors = CardDefaults.colors(
             containerColor = MaterialTheme.colorScheme.onSecondary
         ),
         modifier = Modifier
-            .height(itemHeight)
+            .height(itemHeight * scaleFactor)
             .padding(6.dp)
             .fillMaxWidth()
     ) {
@@ -715,7 +857,7 @@ fun HeadlineItem(headline: Headline, itemHeight: Dp) {
                         start.linkTo(parent.start)
                     },
                 text = headline.type,
-                style = TextStyle(fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                style = TextStyle(fontSize = 22.sp * scaleFactor, fontWeight = FontWeight.Bold)
             )
 
             Text(
@@ -725,7 +867,7 @@ fun HeadlineItem(headline: Headline, itemHeight: Dp) {
                         top.linkTo(type.bottom, margin = 4.dp)
                         start.linkTo(parent.start)
                     },
-                text = headline.description, style = TextStyle(fontSize = 18.sp)
+                text = headline.description, style = TextStyle(fontSize = 18.sp * scaleFactor)
             )
 
             Text(
@@ -733,11 +875,12 @@ fun HeadlineItem(headline: Headline, itemHeight: Dp) {
                     .padding(horizontal = 6.dp)
                     .constrainAs(shortLinkText) {
                         top.linkTo(description.bottom, margin = 8.dp)
+                        bottom.linkTo(parent.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     },
                 text = headline.shortLinkText,
-                style = TextStyle(fontSize = 16.sp, color = Color.Gray)
+                style = TextStyle(fontSize = 16.sp * scaleFactor, color = Color.Gray)
             )
         }
     }
@@ -749,6 +892,9 @@ fun UpcomingMatchItemPreview() {
     ScheduledOrPassedMatchItem(
         scheduledOrPassedMatch = ScheduledOrPassedMatch(
             tag = "upcoming",
+            leagueName = "Premier League",
+            leagueLogoUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
+            season = "2023",
             teamAName = "Manchester United",
             teamAImageUrl = "https://a.espncdn.com/i/teamlogos/soccer/500/360.png",
             teamAScore = "",
@@ -759,7 +905,8 @@ fun UpcomingMatchItemPreview() {
             date = "2023-04-23"
         ),
         itemHeight = 200.dp,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        scaleFactor = 1f
     )
 }
 

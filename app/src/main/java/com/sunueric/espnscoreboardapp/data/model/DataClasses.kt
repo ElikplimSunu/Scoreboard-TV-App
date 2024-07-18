@@ -2,6 +2,9 @@ package com.sunueric.espnscoreboardapp.data.model
 
 data class ScheduledOrPassedMatch(
     val tag: String,
+    val leagueName: String?,
+    val leagueLogoUrl: String?,
+    val season: String?,
     val teamAName: String,
     val teamAImageUrl: String,
     val teamAScore: String?,
@@ -13,6 +16,9 @@ data class ScheduledOrPassedMatch(
 )
 
 data class Headline(
+    val leagueName: String?,
+    val leagueLogoUrl: String?,
+    val season: String?,
     val type: String,
     val description: String,
     val shortLinkText: String
@@ -32,7 +38,8 @@ data class LiveOrScheduledMatch(
     val awayTeamLogoUrl: String?,
     val awayTeamScore: String?,
     val awayTeamRecord: String?,
-    val displayTime: String?
+    val displayTime: String?,
+    val clock: Float?
 )
 
 val liveOrScheduledMatchesTestData = listOf(
@@ -50,7 +57,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "98",
         awayTeamRecord = "34-55",
         displayTime = "60'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 60f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -66,7 +74,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "80",
         awayTeamRecord = "34-55",
         displayTime = "45'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 45f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -82,7 +91,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "36",
         awayTeamRecord = "34-55",
         displayTime = "32'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 32f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -98,7 +108,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "89",
         awayTeamRecord = "34-55",
         displayTime = "20'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 20f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -114,7 +125,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "88",
         awayTeamRecord = "34-55",
         displayTime = "60'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 60f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -130,7 +142,8 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "0",
         awayTeamRecord = "34-55",
         displayTime = "50'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 50f
     ),
     LiveOrScheduledMatch(
         leagueName = "NBA",
@@ -146,140 +159,141 @@ val liveOrScheduledMatchesTestData = listOf(
         awayTeamScore = "101",
         awayTeamRecord = "34-55",
         displayTime = "31'",
-        isCompleted = false
+        isCompleted = false,
+        clock = 31f
     )
     // Add more details as needed
 )
 
-val scheduledOrPassedMatchesTestData = listOf(
-    ScheduledOrPassedMatch(
-        "upcoming",
-
-        "Los Angeles Lakers",
-        "2",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lal.png",
-        "Brooklyn Nets",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/bkn.png",
-        "3",
-        "8:00 PM",
-        "Jan 5"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-        "Golden State Warriors",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
-        "4",
-        "Miami Heat",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
-        "3",
-        "7:30 PM",
-        "Jan 10"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-        "Chicago Bulls",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
-        "8",
-        "Houston Rockets",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/hou.png",
-        "89",
-        "5:00 PM",
-        "Jan 15"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-
-        "Milwaukee Bucks",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mil.png",
-        "56",
-        "Philadelphia 76ers",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phi.png",
-        "78",
-        "7:00 PM",
-        "Jan 20"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-
-        "Los Angeles Lakers",
-        "2",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lal.png",
-        "Brooklyn Nets",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/bkn.png",
-        "3",
-        "8:00 PM",
-        "Jan 5"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-        "Golden State Warriors",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
-        "4",
-        "Miami Heat",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
-        "3",
-        "7:30 PM",
-        "Jan 10"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-        "Chicago Bulls",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
-        "8",
-        "Houston Rockets",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/hou.png",
-        "89",
-        "5:00 PM",
-        "Jan 15"
-    ),
-    ScheduledOrPassedMatch(
-        "upcoming",
-
-        "Milwaukee Bucks",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mil.png",
-        "56",
-        "Philadelphia 76ers",
-        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phi.png",
-        "78",
-        "7:00 PM",
-        "Jan 20"
-    )
+//val scheduledOrPassedMatchesTestData = listOf(
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//
+//        "Los Angeles Lakers",
+//        "2",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lal.png",
+//        "Brooklyn Nets",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/bkn.png",
+//        "3",
+//        "8:00 PM",
+//        "Jan 5"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//        "Golden State Warriors",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+//        "4",
+//        "Miami Heat",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
+//        "3",
+//        "7:30 PM",
+//        "Jan 10"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//        "Chicago Bulls",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
+//        "8",
+//        "Houston Rockets",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/hou.png",
+//        "89",
+//        "5:00 PM",
+//        "Jan 15"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//
+//        "Milwaukee Bucks",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mil.png",
+//        "56",
+//        "Philadelphia 76ers",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phi.png",
+//        "78",
+//        "7:00 PM",
+//        "Jan 20"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//
+//        "Los Angeles Lakers",
+//        "2",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/lal.png",
+//        "Brooklyn Nets",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/bkn.png",
+//        "3",
+//        "8:00 PM",
+//        "Jan 5"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//        "Golden State Warriors",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/gs.png",
+//        "4",
+//        "Miami Heat",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mia.png",
+//        "3",
+//        "7:30 PM",
+//        "Jan 10"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//        "Chicago Bulls",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/chi.png",
+//        "8",
+//        "Houston Rockets",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/hou.png",
+//        "89",
+//        "5:00 PM",
+//        "Jan 15"
+//    ),
+//    ScheduledOrPassedMatch(
+//        "upcoming",
+//
+//        "Milwaukee Bucks",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/mil.png",
+//        "56",
+//        "Philadelphia 76ers",
+//        "https://a.espncdn.com/i/teamlogos/nba/500/scoreboard/phi.png",
+//        "78",
+//        "7:00 PM",
+//        "Jan 20"
+//    )
 
     // Add more matches as needed
-)
+//)
 
-val headlinesTestData = listOf(
-    Headline(
-        type = "Recap",
-        description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
-        shortLinkText = "Celtics win 18th NBA championship with 106-88 Game 5 victory over Dallas Mavericks",
-    ),
-    Headline(
-        type = "Highlight",
-        description = "— Luka Doncic delivers a masterclass performance in a thrilling win against the Lakers.",
-        shortLinkText = "Doncic leads Mavericks to stunning victory over Lakers",
-    ),
-    Headline(
-        type = "News",
-        description = "— LeBron James announces his retirement from the NBA after 20 seasons.",
-        shortLinkText = "LeBron James retires from the NBA",
-    ),
-    Headline(
-        type = "Recap",
-        description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
-        shortLinkText = "Celtics win 18th NBA championship with 106-88 Game 5 victory over Dallas Mavericks",
-    ),
-    Headline(
-        type = "Highlight",
-        description = "— Luka Doncic delivers a masterclass performance in a thrilling win against the Lakers.",
-        shortLinkText = "Doncic leads Mavericks to stunning victory over Lakers",
-    ),
-    Headline(
-        type = "News",
-        description = "— LeBron James announces his retirement from the NBA after 20 seasons.",
-        shortLinkText = "LeBron James retires from the NBA",
-    )
-)
+//val headlinesTestData = listOf(
+//    Headline(
+//        type = "Recap",
+//        description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
+//        shortLinkText = "Celtics win 18th NBA championship with 106-88 Game 5 victory over Dallas Mavericks",
+//    ),
+//    Headline(
+//        type = "Highlight",
+//        description = "— Luka Doncic delivers a masterclass performance in a thrilling win against the Lakers.",
+//        shortLinkText = "Doncic leads Mavericks to stunning victory over Lakers",
+//    ),
+//    Headline(
+//        type = "News",
+//        description = "— LeBron James announces his retirement from the NBA after 20 seasons.",
+//        shortLinkText = "LeBron James retires from the NBA",
+//    ),
+//    Headline(
+//        type = "Recap",
+//        description = "— Jayson Tatum put his hands behind his head, with TD Garden fans standing on their feet cheering around him, and took it all in.",
+//        shortLinkText = "Celtics win 18th NBA championship with 106-88 Game 5 victory over Dallas Mavericks",
+//    ),
+//    Headline(
+//        type = "Highlight",
+//        description = "— Luka Doncic delivers a masterclass performance in a thrilling win against the Lakers.",
+//        shortLinkText = "Doncic leads Mavericks to stunning victory over Lakers",
+//    ),
+//    Headline(
+//        type = "News",
+//        description = "— LeBron James announces his retirement from the NBA after 20 seasons.",
+//        shortLinkText = "LeBron James retires from the NBA",
+//    )
+//)
 
 data class ScoreboardResponse(
     val leagues: List<League>,

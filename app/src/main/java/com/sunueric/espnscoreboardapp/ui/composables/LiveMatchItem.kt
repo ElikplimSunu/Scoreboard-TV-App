@@ -58,16 +58,13 @@ fun LiveMatchItem(
     scalingFactor: Float
 ) {
     var progressFloat by remember { mutableFloatStateOf(0.0f) }
-    var displayTimeInt by remember { mutableIntStateOf(0) }
 
-    val displayTimeParts = liveOrScheduledMatches.displayTime?.replace("'", "")?.split("+")
-//    val extraTime = 0
-//    (displayTimeParts?.get(1)?.toInt()) ?: 0
-//
-//    if (displayTimeParts != null) {
-//        displayTimeInt = displayTimeParts.sumOf { it.toInt() }
-//    }
-//    progressFloat = displayTimeInt / ((playTime + (extraTime)).toFloat())
+    var clockValue by remember { mutableFloatStateOf(0.0f) }
+
+    if (liveOrScheduledMatches.clock != null) {
+        clockValue = liveOrScheduledMatches.clock ?: 0f
+        progressFloat = clockValue / playTime
+    }
 
     var scalar by remember { mutableFloatStateOf(1f) }
     scalar = scalingFactor
