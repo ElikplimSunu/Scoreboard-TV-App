@@ -12,9 +12,9 @@ Welcome to the Sports Live Scores TV App, an advanced Android TV application cra
 
 ## Screenshots
 
-![Live Scores](path/to/live_scores_screenshot.png)
-![Match Details](path/to/match_details_screenshot.png)
-![Upcoming Matches](path/to/upcoming_matches_screenshot.png)
+![Live Scores](screenshots/Screenshot_20240710_125529.png)
+[Video Recording 1](https://drive.google.com/file/d/1UsD7Th43egJjqefnhruXSeLstk9ervO_/view?usp=drive_link)
+[Video Recording 2](https://drive.google.com/file/d/1uEy2-XQwygiPxIIC5ZSSNtcjZXolc4ZW/view?usp=drive_link)
 
 ## Installation
 
