@@ -1,5 +1,7 @@
 package com.sunueric.espnscoreboardapp.ui
 
+//import com.sunueric.espnscoreboardapp.data.model.headlinesTestData
+//import com.sunueric.espnscoreboardapp.data.model.scheduledOrPassedMatchesTestData
 import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,7 +23,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,7 +40,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,21 +52,16 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.tv.material3.Border
 import androidx.tv.material3.Card
 import androidx.tv.material3.CardDefaults
-import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.sunueric.espnscoreboardapp.R
-import com.sunueric.espnscoreboardapp.data.model.CallDetails
 import com.sunueric.espnscoreboardapp.data.model.Headline
 import com.sunueric.espnscoreboardapp.data.model.LiveOrScheduledMatch
 import com.sunueric.espnscoreboardapp.data.model.ScheduledOrPassedMatch
-//import com.sunueric.espnscoreboardapp.data.model.headlinesTestData
-import com.sunueric.espnscoreboardapp.data.model.liveOrScheduledMatchesTestData
-//import com.sunueric.espnscoreboardapp.data.model.scheduledOrPassedMatchesTestData
+import com.sunueric.espnscoreboardapp.data.model.callDetails
 import com.sunueric.espnscoreboardapp.ui.composables.LiveMatchItem
-import com.sunueric.espnscoreboardapp.ui.theme.Purple40
 import com.sunueric.espnscoreboardapp.ui.theme.PurpleGrey80
 import com.sunueric.espnscoreboardapp.ui.viewmodels.ScoreboardViewModel
 import kotlinx.coroutines.delay
@@ -78,36 +72,7 @@ fun ScoreboardScreen(espnViewModel: ScoreboardViewModel) {
     val parsedLeagues by espnViewModel.parsedLeagues.collectAsState()
     val itemWidth = LocalConfiguration.current.screenWidthDp.dp
 
-    val callDetails = listOf(
-        CallDetails(
-            "soccer",
-            "club.friendly"
-        ),
-        CallDetails(
-            "soccer",
-            "uefa.europa_qual"
-        ),
-        CallDetails(
-            "soccer",
-            "uefa.europa.conf_qual"
-        ),
-        CallDetails(
-            "soccer",
-            "uefa.euro.u19"
-        ),
-        CallDetails(
-            "baseball",
-            "mlb"
-        ),
-        CallDetails(
-            "basketball",
-            "nba"
-        ),
-        CallDetails(
-            "football",
-            "nfl"
-        )
-    )
+
 
     val listState = rememberLazyListState()
     val visibleItems = 1
