@@ -15,6 +15,7 @@ Welcome to the Sports Live Scores TV App, an advanced Android TV application cra
 ![Live Scores](screenshots/Screenshot_20240710_125529.png)
 [Video Recording 1](https://drive.google.com/file/d/1UsD7Th43egJjqefnhruXSeLstk9ervO_/view?usp=drive_link)
 [Video Recording 2](https://drive.google.com/file/d/1uEy2-XQwygiPxIIC5ZSSNtcjZXolc4ZW/view?usp=drive_link)
+[Video Recording 3](https://drive.google.com/file/d/1eMvUDanVWAX5Tuomnm8pOrsrAxtHg6n-/view?usp=sharing)
 
 ## Installation
 
