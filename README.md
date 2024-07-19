@@ -1,4 +1,4 @@
-# Sports Live Scores TV App
+# Scoreboard TV App
 
 Welcome to the Sports Live Scores TV App, an advanced Android TV application crafted using Kotlin and Jetpack Compose. This app delivers real-time scores, historical match data, and upcoming match schedules, along with match headlines tailored to your preferred sports and leagues.
 
